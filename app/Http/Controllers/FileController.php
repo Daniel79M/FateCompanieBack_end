@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\File;
+use App\Models\Groupe;
 use App\Resources\GroupResource;
 use App\Responses\ApiResponse;
 use Illuminate\Http\Request;
@@ -47,4 +48,30 @@ class FileController extends Controller
             return ApiResponse::rollback($th); 
         }
     }
+
+    public function getGroupFiles($groupeId)
+{
+    try {
+        // Récupérer le groupe par son ID
+        $group = Groupe::findOrFail($groupeId);
+
+        // Récupérer tous les fichiers associés à ce groupe
+        $files = File::where('groupe_id', $groupeId)->get();
+
+        return ApiResponse::sendResponse(
+            true,
+            'Fichiers récupérés avec succès.',
+            // [new UserResource($user)],
+            $files,
+
+            200
+        );
+    } catch (\Exception $e) {
+        return ApiResponse::sendResponse(
+            'Erreur lors de la récupération des fichiers.',
+            null,
+            500
+        );
+    }
+}
 }

@@ -27,5 +27,7 @@ Route::prefix('FATE.v1.0.0')->group(function () {
         Route::post('groupe/{groupeId}/addMember', [GroupeController::class, 'addMember'])->name('addMember');
         Route::get('groupe/ShowGroupsForUser/{user_id}', [GroupeController::class, 'ShowGroupsForUser'])->name('ShowGroupsForUser');
         Route::post('upload-file/{id}', [FileController::class, 'file'])->name('file');
+        Route::get('groupe/{groupeId}/files', [FileController::class, 'getGroupFiles']);
+
     });
 }); 

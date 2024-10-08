@@ -26,9 +26,9 @@ class GroupeRequest extends FormRequest
             'groupe_image' => 'nullable|string',
             'Groupe_actu' => 'nullable|string',
             'creator_id' => 'required|integer',
-            'group_members' => 'required|array|min:1', // Doit être un tableau avec au moins 2 membres
-            'group_members.*' => 'integer|exists:users,id', // Chaque membre doit être un ID d'utilisateur valide            // 'non_registered_members' => 'nullable|array', // Noms des membres non inscrits
-            'non_registered_members.*.email' => 'nullable|email',
+            // 'group_members' => 'required|min:1',
+            // 'group_members.*' => 'integer|exists:users,id', // Chaque membre doit être un ID d'utilisateur valide            // 'non_registered_members' => 'nullable|array', // Noms des membres non inscrits
+            // 'non_registered_members.*.email' => 'nullable|email',
         ];
     }
 

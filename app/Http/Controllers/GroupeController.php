@@ -210,8 +210,15 @@ class GroupeController extends Controller
 
             $request->validated();
 
+            // if ($request->hasFile("groupe_image")) {
+            //     $avatar = move_uploaded_file($_FILES['image']['tmp_name'], 'db/groupes/' . $_FILES['image']['name']);
+            //     $avatar = $_FILES['image']['name'];
+            // } else {
+            //     $avatar = '';
+            // }
+
             // Gestion de l'avatar
-            $avatar = "/images/group-avatar.png";
+            $avatar = "src/public/db/image_default.jpg";
             if ($request->hasFile('groupe_image')) {
                 $avatar = move_uploaded_file($request->file('avatar'), 'group');
             }
@@ -223,39 +230,13 @@ class GroupeController extends Controller
                 'creator_id' => $user_id, //auth()->id()
             ]);
 
-            // Ajout des membres inscrits
-            foreach ($request->group_members as $groupMembers) {
-                $groupMembers = collect([$user_id, ...$request->group_members])
-                    ->map(fn($member_id) => ['member_id' => $member_id]); // Ajout de 'groupe_id' pour chaque membre
-                $group->groupe_members()->createMany($groupMembers->toArray());
-            }
+            $data = [
+                'groupe_id' => $group->id,
+                'member_id' => $user_id
+            ];
 
-            // Envoi de mails aux membres inscrits
-            foreach ($request->group_members as $member_id) {
-                $member = User::find($member_id); // Assure-toi que la classe User existe et est correctement configurée
-                if ($member) {
-                    Mail::to($member->email)->send(new SendGroupMessage($group, ['name' => $member->name]));
-                }
-            }
+            Groupe_member::create($data);
 
-
-            // Ajout des membres non inscrits
-            if ($request->filled('non_registered_members')) {
-                foreach ($request->non_registered_members as $tempMember) {
-                    temporary_members::create([
-                        'email' => $tempMember['email'] ?? null,
-                        'groupe_id' => $group->id,
-                    ]);
-
-                     // Envoi de mails aux membres non inscrits
-                if (isEmpty($tempMember)) {
-                    
-                }else {
-                    Mail::to($tempMember['email'])->send(new SendGroupMessage($group, $tempMember));
-                }
-                }
-                
-            }
             DB::commit();
 
             return ApiResponse::sendResponse(
@@ -264,11 +245,6 @@ class GroupeController extends Controller
                 // 'Connexion réussie.', 
                 // 201
                 $group,
-                [
-                    $groupMembers,
-                    $tempMember
-                ],
-
                 'Groupe crée avec succes.',
                 $group ? 201 : 401
             );
