@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\SendGroupMessage;
 use App\Models\File;
 use App\Models\Groupe;
+use App\Models\User;
+use App\Notifications\FileSentNotification;
 use App\Resources\GroupResource;
 use App\Responses\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class FileController extends Controller
 {
@@ -34,6 +38,17 @@ class FileController extends Controller
             $fileModel->groupe_id = $validatedData['groupe_id'];
             $fileModel->user_id = $id;    
             $fileModel->save(); 
+
+            $groupe = Groupe::find($validatedData['groupe_id']);
+            $group_members = $groupe->member_id; // Assurez-vous que la relation 'members' est définie dans le modèle Groupe
+
+            $members = User::find($group_members);
+            // if ($member) {
+            //     Mail::to($member->email)->send(new SendGroupMessage($groupe, ['name' => $member->name]));
+            // }
+            foreach ($members as $member) {
+                $member->notify(new FileSentNotification($fileModel));
+            }
     
             DB::commit();
     

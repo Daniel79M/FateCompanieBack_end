@@ -144,32 +144,47 @@ class GroupeController extends Controller
             return ApiResponse::rollback($th);
         }
     }
-
+  
     public function addMember(Request $request, $groupeId)
     {
         DB::beginTransaction();
             try {
 
-                // Trouver le groupe par son ID
+                
                 $group = Groupe::findOrFail($groupeId);
 
-                // Vérifier si `group_members` est défini et est un tableau
-                if ($request->filled('group_members') && is_array($request->group_members)) {
-                    // Création d'un tableau pour les membres à ajouter
-                    $groupMembersData = collect($request->group_members)
-                        ->map(fn($member_id) => ['member_id' => $member_id, 'groupe_id' => $groupeId]);
-
-                    // Ajout des membres au groupe
-                    $group->groupe_members()->createMany($groupMembersData->toArray());
-
-                    // Envoi de mails aux membres inscrits
-                    foreach ($request->group_members as $member_id) {
-                        $member = User::find($member_id);
-                        if ($member) {
-                            Mail::to($member->email)->send(new SendGroupMessage($group, ['name' => $member->name]));
-                        }
-                    }
+            if ($request->filled('group_members') && !is_array($request->group_members)) {
+                // Récupérer l'ID du membre à ajouter
+                $member_id = $request->group_members;
+            
+                // Créer les données du membre à ajouter
+                $groupMemberData = ['member_id' => $member_id, 'groupe_id' => $groupeId];
+            
+                // Ajouter le membre au groupe
+                $group->groupe_members()->create($groupMemberData);
+            
+                // Envoyer un mail au membre inscrit
+                $member = User::find($member_id);
+                if ($member) {
+                    Mail::to($member->email)->send(new SendGroupMessage($group, ['name' => $member->name]));
                 }
+            }
+
+            // if ($request->filled('non_registered_member')) {
+            //     // Récupérer les informations du membre non inscrit
+            //     $tempMember = $request->non_registered_member;
+            
+            //     // Créer le membre temporaire
+            //     temporary_members::create([
+            //         'email' => $tempMember['email'] ?? null,
+            //         'groupe_id' => $groupeId, // Assurez-vous d'utiliser $groupeId ici
+            //     ]);
+            
+            //     // Envoyer un mail au membre non inscrit
+            //     if (($tempMember['email'])) {
+            //         Mail::to($tempMember['email'])->send(new SendGroupMessage($group, $tempMember));
+            //     }
+            // }
 
                 // Gestion des membres non enregistrés
                 if ($request->filled('non_registered_members')) {
@@ -189,6 +204,7 @@ class GroupeController extends Controller
                 return ApiResponse::sendResponse(
                     'Opération effectuée.',
                     $group,
+            
                     ['Membre ajouté avec succès.'],
                     $group ? 200 : 401
                 );
@@ -245,6 +261,7 @@ class GroupeController extends Controller
                 // 'Connexion réussie.', 
                 // 201
                 $group,
+                $data,
                 'Groupe crée avec succes.',
                 $group ? 201 : 401
             );

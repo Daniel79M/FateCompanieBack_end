@@ -68,12 +68,12 @@ class AuthController extends Controller
 
     public function register(RequestsRegisterRequest $request)
     {
-        if ($request->hasFile("image")) {
-            move_uploaded_file($_FILES['image']['tmp_name'], 'db/products/' . $_FILES['image']['name']);
-            $imageName = $_FILES['image']['name'];
-        } else {
-            $imageName = '';
-        }
+        // if ($request->hasFile("image")) {
+        //     move_uploaded_file($_FILES['image']['tmp_name'], 'db/products/' . $_FILES['image']['name']);
+        //     $imageName = $_FILES['image']['name'];
+        // } else {
+        //     $imageName = '';
+        // }
 
         $data = [ 
             'name' => $request->name,
@@ -81,7 +81,7 @@ class AuthController extends Controller
             'phone_number' => $request->phone_number,
             'email' => $request->email,
             'password' => $request->password,
-            'image' => $imageName,
+            // 'image' => $imageName,
         ];
 
         DB::beginTransaction();
@@ -93,7 +93,7 @@ class AuthController extends Controller
             return ApiResponse::sendResponse(
                 true, 
                 $user,
-                [new UserResource($user)], 
+                // [new UserResource($user)], 
                 'Opération effectuée.', 
                 201
             );
